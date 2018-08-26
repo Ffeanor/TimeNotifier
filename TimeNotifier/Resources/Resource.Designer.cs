@@ -101,11 +101,32 @@ namespace TimeNotifier
 		public partial class Id
 		{
 			
+			// aapt resource value: 0x7f090008
+			public const int action_settings = 2131296264;
+			
+			// aapt resource value: 0x7f090007
+			public const int button1 = 2131296263;
+			
+			// aapt resource value: 0x7f090006
+			public const int buttonClear = 2131296262;
+			
+			// aapt resource value: 0x7f090004
+			public const int buttonStart = 2131296260;
+			
+			// aapt resource value: 0x7f090005
+			public const int buttonStop = 2131296261;
+			
+			// aapt resource value: 0x7f090003
+			public const int numberPickerCircleCount = 2131296259;
+			
+			// aapt resource value: 0x7f090002
+			public const int numberPickerRestTime = 2131296258;
+			
 			// aapt resource value: 0x7f090001
-			public const int action_settings = 2131296257;
+			public const int numberPickerWorkTime = 2131296257;
 			
 			// aapt resource value: 0x7f090000
-			public const int button1 = 2131296256;
+			public const int textViewTime = 2131296256;
 			
 			static Id()
 			{
