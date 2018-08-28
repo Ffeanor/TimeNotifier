@@ -10,10 +10,10 @@ using System.Timers;
 
 namespace TimeNotifier
 {
-    [Activity(Label = "@string/app_name", MainLauncher = true)]
+    [Activity(Label = "@string/app_name", MainLauncher = true, ScreenOrientation =Android.Content.PM.ScreenOrientation.Portrait)]
     public class MainActivity : Activity
     {
-        Button button;
+
         Notification.Builder builder;
         NotificationManager notificationManager;
 
@@ -22,26 +22,27 @@ namespace TimeNotifier
         Button buttonClear;
 
         TextView textViewTime;
-        
+        //TextView textViewDebug;
 
         NumberPicker numberPickerWorkTime;
         NumberPicker numberPickerRestTime;
         NumberPicker numberPickerCount;
 
         Timer timer;
-        double time = .0;
+        //float time = .0;
 
-        double workTime = .0;
-        double restTime = .0;
+        float workTime = 0F;
+        float restTime = 0F;
         int circleCount = 0;
+
+        const string separator = ":";
 
 
         protected override void OnCreate(Bundle savedInstanceState) {
             base.OnCreate(savedInstanceState);
 
             SetContentView(Resource.Layout.content_main);
-            button = FindViewById<Button>(Resource.Id.button1);
-            button.Click += Button_Click;
+            Window.AddFlags(WindowManagerFlags.KeepScreenOn);
 
             buttonStart = FindViewById<Button>(Resource.Id.buttonStart);
             buttonStart.Click += ButtonStart_Click;
@@ -51,9 +52,10 @@ namespace TimeNotifier
             buttonClear.Click += ButtonClear_Click;
 
             textViewTime = FindViewById<TextView>(Resource.Id.textViewTime);
-            textViewTime.Text = time.ToString();
+            //textViewTime.Text = time.ToString();
+            //textViewDebug = FindViewById<TextView>(Resource.Id.textViewDebug);
 
-            
+
 
             numberPickerWorkTime = FindViewById<NumberPicker>(Resource.Id.numberPickerWorkTime);
             numberPickerWorkTime.MaxValue = 1000;
@@ -68,8 +70,10 @@ namespace TimeNotifier
             numberPickerCount.MinValue = 0;
             numberPickerCount.WrapSelectorWheel = true;
 
+            loadSettings();
+
             timer = new Timer();
-            timer.Interval = 500;
+            timer.Interval = 100;
             timer.AutoReset = true;
             timer.Elapsed += Timer_Elapsed;
 
@@ -105,29 +109,7 @@ namespace TimeNotifier
         //}
 
         private void Timer_Elapsed(object sender, ElapsedEventArgs e) {
-            if (workTime > 0) {
-                if (workTime == numberPickerWorkTime.Value) {
-                    // Build the notification:
-                    Notification notification = builder.Build();
-                    notificationManager.Notify(0, notification);
-                }
-                workTime -= 0.1;
-                RunOnUiThread(() => {
-                    textViewTime.Text = workTime.ToString("0.0");
-                });
-            }
-            else if (restTime > 0) {
-                if (restTime == numberPickerRestTime.Value) {
-                    // Build the notification:
-                    Notification notification = builder.Build();
-                    notificationManager.Notify(0, notification);
-                }
-                restTime -= 0.1;
-                RunOnUiThread(() => {
-                    textViewTime.Text = restTime.ToString("0.0");
-                });
-            }
-            else {
+            if ((Math.Round(workTime, 1) <= 0) && (Math.Round(restTime, 1) <= 0)) {
                 // Build the notification:
                 Notification notification = builder.Build();
                 notificationManager.Notify(0, notification);
@@ -141,17 +123,42 @@ namespace TimeNotifier
                 restTime = numberPickerRestTime.Value;
                 workTime = numberPickerWorkTime.Value;
 
-                workTime -= 0.1;
                 RunOnUiThread(() => {
-                    textViewTime.Text = workTime.ToString("0.0");
+                    textViewTime.Text = Math.Round(workTime, 1).ToString("0.0");
+                });
+
+            }
+
+            if (Math.Round(workTime, 1) > 0) {
+                if (workTime == numberPickerWorkTime.Value) {
+                    // Build the notification:
+                    Notification notification = builder.Build();
+                    notificationManager.Notify(0, notification);
+                }
+                workTime -= 0.1F;
+                RunOnUiThread(() => {
+                    textViewTime.Text = Math.Round(workTime, 1).ToString("0.0");
                 });
             }
+            else if (Math.Round(restTime, 1) > 0) {
+                workTime = 0;
+                if (restTime == numberPickerRestTime.Value) {
+                    // Build the notification:
+                    Notification notification = builder.Build();
+                    notificationManager.Notify(0, notification);
+                }
+                restTime -= 0.1F;
+                RunOnUiThread(() => {
+                    textViewTime.Text = Math.Round(restTime, 1).ToString("0.0");
+                });
+            }
+            //textViewDebug.Text = Math.Round(workTime, 1).ToString() + separator + Math.Round(restTime, 1).ToString() + separator + circleCount.ToString();
         }
 
         private void ButtonClear_Click(object sender, EventArgs e) {
             timer.Stop();
-            workTime = .0;
-            restTime = .0;
+            workTime = .0F;
+            restTime = .0F;
             circleCount = 0;
 
             textViewTime.Text = workTime.ToString();
@@ -165,7 +172,9 @@ namespace TimeNotifier
             workTime = numberPickerWorkTime.Value;
             restTime = numberPickerRestTime.Value;
             circleCount = numberPickerCount.Value;
-            time = workTime;
+
+            saveSettings();
+
             textViewTime.Text = numberPickerWorkTime.Value.ToString();
 
             timer.Start();
@@ -197,6 +206,34 @@ namespace TimeNotifier
             }
 
             return base.OnOptionsItemSelected(item);
+        }
+
+        private void saveSettings() {
+            try {
+                //store
+                var prefs = Application.Context.GetSharedPreferences(Application.PackageName, FileCreationMode.Private);
+                var prefEditor = prefs.Edit();
+                prefEditor.PutFloat("workTime", workTime);
+                prefEditor.PutFloat("restTime", restTime);
+                prefEditor.PutInt("circleCount", circleCount);
+                prefEditor.Commit();
+            }
+            catch { };
+        }
+
+        private void loadSettings() {
+            try {
+                //retreive 
+                var prefs = Application.Context.GetSharedPreferences(Application.PackageName, FileCreationMode.Private);
+                workTime = prefs.GetFloat("workTime", 0);
+                restTime = prefs.GetFloat("restTime", 0);
+                circleCount = prefs.GetInt("circleCount", 0);
+
+                numberPickerWorkTime.Value = (int)workTime;
+                numberPickerRestTime.Value = (int)restTime;
+                numberPickerCount.Value = circleCount;
+            }
+            catch { };
         }
     }
 }

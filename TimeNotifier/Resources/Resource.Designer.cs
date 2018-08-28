@@ -101,11 +101,8 @@ namespace TimeNotifier
 		public partial class Id
 		{
 			
-			// aapt resource value: 0x7f090008
-			public const int action_settings = 2131296264;
-			
 			// aapt resource value: 0x7f090007
-			public const int button1 = 2131296263;
+			public const int action_settings = 2131296263;
 			
 			// aapt resource value: 0x7f090006
 			public const int buttonClear = 2131296262;
